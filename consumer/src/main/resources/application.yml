@@ -1,0 +1,13 @@
+spring:
+  main:
+    banner-mode: off
+  kafka:
+    consumer:
+      group-id: default-consumer
+      auto-offset-reset: earliest
+
+user:
+  topic:
+    name: user-topic
+    group:
+      id: consumer-group-via-config
