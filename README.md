@@ -31,5 +31,7 @@ CDK_ADMIN_PASSWORD: "admin"
 # check conduktor related files following link.  
 https://github.com/conduktor/kafka-beginners-course/tree/main/conduktor-platform
 
+idempotent consume 
 
+We can use KafkaListenerEndpointRegistry to stop/start consumer. Then use Scheduled(cron) cron expression 
 
