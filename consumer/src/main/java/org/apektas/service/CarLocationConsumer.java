@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 public class CarLocationConsumer {
     // if let following than it tries to map String to location then fail
     // @KafkaListener(topics = "t-location", groupId = "cg-all-location")
-    @KafkaListener(topics = "t-location", groupId = "cg-all-location",
-            containerFactory = "allLocationContainerFactory",
-            errorHandler = "locationErrorHandler")
+    // Multiple topics to listen
+    // @KafkaListener(id = "multiGroup", topics = { "foos", "bars" })
+    @KafkaListener(topics = { "t-location" }, groupId = "cg-all-location",
+            containerFactory = "allLocationContainerFactory"
+            //errorHandler = "locationErrorHandler"
+            )
     public void listenAllMessages(ConsumerRecord<String, Location> record){
         if (record.value().getDistance() % 3 == 0) {
             log.error("Sample exception on partition: {} distance: {}", record.partition(), record.value().getDistance());
