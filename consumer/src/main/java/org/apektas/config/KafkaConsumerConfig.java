@@ -3,16 +3,21 @@ package org.apektas.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apektas.model.Location;
 import org.apektas.model.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
@@ -75,11 +80,10 @@ public class KafkaConsumerConfig {
         // global error handler
         // advanced usage  can be found as follows
         // https://github.com/dilipsundarraj1/kafka-for-developers-using-spring-boot/blob/c617a03d377f72fa63f191be2517dee22099c141/library-events-consumer/src/main/java/com/learnkafka/config/LibraryEventsConsumerConfig.java
-        factory.setCommonErrorHandler(errorHandler());
+        factory.setCommonErrorHandler(new DefaultErrorHandler(deadLetterPublishingRecoverer(), new FixedBackOff(1000, 2)));
         return factory;
     }
 
-    @Bean
     DefaultErrorHandler errorHandler() {
         return new DefaultErrorHandler((rec, thr) ->
                 log.error("Exception occurred!!!!")
@@ -96,7 +100,8 @@ public class KafkaConsumerConfig {
                 */
 
                 ,
-                new FixedBackOff(0, 0L)
+                new FixedBackOff(1000, 3L) // used for retrying mechanism
+                // Blocking retry - if 2 message fails it tries 3 times before processing next message.
                 // if FixedBackOff(2000L, 2L) then we can see retry in the logs
         );
     }
@@ -118,6 +123,22 @@ public class KafkaConsumerConfig {
             }
         });
         return factory;
+    }
+
+
+    private KafkaOperations<String, Object> getEventKafkaTemplate() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "deadLetter-client");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName());
+        return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props));
+    }
+
+    @Bean(name="deadLetterPublishingRecoverer")
+    public DeadLetterPublishingRecoverer deadLetterPublishingRecoverer() {
+        return new DeadLetterPublishingRecoverer(getEventKafkaTemplate(),
+                (record, ex) -> new TopicPartition("t-location-deadLetter", 1));
     }
 
 }
