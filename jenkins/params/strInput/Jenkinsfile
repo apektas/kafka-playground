@@ -1,0 +1,22 @@
+pipeline{
+    agent any
+
+    parameters{
+        string(defaultValue: "TEST", description: "Which env to deployed in?", name: "deployEnv")
+    }
+
+    stages{
+        stage("Clean Up"){
+            steps {
+                deleteDir() // recursively delete current directory
+            }
+        }
+
+        stage("Demo ") {
+            steps{
+                echo "user input is set to: ${params.deployEnv}"
+            }
+        }
+
+    }
+}

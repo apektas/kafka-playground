@@ -1,0 +1,30 @@
+# docker-compose.yaml
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    container_name: jenkins
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+  agent:
+    image: jenkins/ssh-agent:jdk11
+    privileged: true
+    user: root
+    container_name: agent
+    expose:
+      - 22
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDjqJ8iCeZwlzz8DRwicvWixSii8R04UVAziWnOWh76wcU6KSLLTGzd5YjCtTpoePUdIpKdhuMzc3ssiwc8OJZZtF4/tA8XIq2TcRYBYcD4PkOfGKcHseoCSPRu5IWhiLn+sH/1cfVoniKThpS+ChbWkQI376cRaxkNQSPHZyoeLEmbJkToqRXadZOy6PTgDTnkGwGncuV5r4xg2MoTgc6dXVX5sqn3pekJ0abSgZk37/HgJRqgS8ABLGHSJV/u2gHIIlmvwBj/4RV5yPCZ9bCW87Mc3zJL+DpOSiNuxJvvJHqXYrr4sWGpKoeXLgC8NiIbEWifKiCqkF1dwGM+GfBaotrxPLpcKa7g9zs7TiRToX7ZPngoQKLXfFxAtxnpQbaYzIkLb7VZBysp29wz6z/SCKVwkCupZ7+VjDnw1pUhipQuO9Dr9jGEMA20yab+0GsCYcAphoYnCbppuoEo/l/aY7tTi9q7/MMrD9mZtSBGHTz5MkiFUVOb83ZzMey7r7k= apektas@istavrit.local
+
+volumes:
+  jenkins-data:
+    name: jenkins-data
+  jenkins-docker-certs:
+    name: jenkins-docker-certs

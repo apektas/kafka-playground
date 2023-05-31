@@ -1,0 +1,22 @@
+pipeline{
+    agent any
+
+    parameters{
+        booleanParam(defaultValue: false, description: "Enable a service?", name: "enableService")
+    }
+
+    stages{
+        stage("Clean Up"){
+            steps {
+                deleteDir() // recursively delete current directory
+            }
+        }
+
+        stage("Demo ") {
+            steps{
+                echo "booleanParam is set to: ${params.enableService}"
+            }
+        }
+
+    }
+}
