@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  keyclock:
+    image: quay.io/keycloak/keycloak:21.1.1
+    hostname: keyclock
+    container_name: keyclock
+    ports:
+      - "8090:8080"
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+
